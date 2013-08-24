@@ -3,7 +3,7 @@ using System.Collections;
 
 public class Player : MonoBehaviour {
 	
-	bool isStopping;
+	bool isStopping, isFound;
 	float CurrentVolume;
 	
 	// Use this for initialization
@@ -13,52 +13,78 @@ public class Player : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if( Music.IsPlaying() )
+		if ( isFound )
 		{
-			if( Input.GetKeyUp(KeyCode.UpArrow) )
+			if ( audio.isPlaying )
+			{
+				float shakeTime = (float)Music.mtUnit/2;
+				if ( (int)( audio.time / shakeTime ) > (int)( ( audio.time - Time.deltaTime ) / shakeTime ) )
+				{
+					Vector2 next = Random.insideUnitCircle*(audio.clip.length - audio.time)/10;
+					transform.position = new Vector3( next.x/2, 1+next.y, transform.position.z );
+				}
+			}
+			else
+			{
+				transform.position = new Vector3( 0, 1, 0 );
+				isFound = false;
+				GameContext.eye.Restart();
+			}
+		}
+		else
+		{
+			Walk();
+		}
+	}
+
+	void Walk()
+	{
+		if ( Music.IsPlaying() )
+		{
+			if ( Input.GetKeyUp( KeyCode.UpArrow ) )
 			{
 				isStopping = true;
 			}
-			
-			if( isStopping )
+
+			if ( isStopping )
 			{
-				if( CurrentVolume > 0 )
+				if ( CurrentVolume > 0 )
 				{
 					CurrentVolume -= Time.deltaTime*2.0f;
-					if( CurrentVolume <= 0 )
+					if ( CurrentVolume <= 0 )
 					{
 						Music.Pause();
 					}
 					else
 					{
-						Music.SetVolume(CurrentVolume);
+						Music.SetVolume( CurrentVolume );
 					}
 				}
 			}
 			else
 			{
-				if( CurrentVolume < 1 )
+				if ( CurrentVolume < 1 )
 				{
 					CurrentVolume += Time.deltaTime*2.0f;
-					if( CurrentVolume >= 1 ) CurrentVolume = 1.0f;
+					if ( CurrentVolume >= 1 ) CurrentVolume = 1.0f;
 				}
-				Music.SetVolume(CurrentVolume);
+				Music.SetVolume( CurrentVolume );
 			}
-			transform.position = new Vector3(0,1,(float)Music.MusicalTime/4);
+			transform.position = new Vector3( 0, 1, (float)Music.MusicalTime/4 );
 		}
 		else
 		{
-			if( Input.GetKeyDown(KeyCode.UpArrow) )
+			if ( Input.GetKeyDown( KeyCode.UpArrow ) )
 			{
 				Music.Resume();
 				isStopping = false;
 			}
 		}
-	
 	}
 
 	public void Restart()
 	{
-		transform.position = new Vector3( 0, 1, 0 );
+		isFound = true;
+		audio.Play();
 	}
 }

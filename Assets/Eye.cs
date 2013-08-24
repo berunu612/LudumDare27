@@ -7,13 +7,16 @@ public class Eye : MonoBehaviour {
 	{
 		Closed,
 		Opening,
-		Opened
+		Opened,
+		Catched,
 	}
 	State state;
 	Vector3 initialScale;
+	public Material cellMaterial;
 	
 	// Use this for initialization
 	void Start () {
+		GameContext.eye = this;
 		initialScale = transform.localScale;
 	}
 	
@@ -38,6 +41,7 @@ public class Eye : MonoBehaviour {
 			else
 			{
 				state = State.Opened;
+				cellMaterial.color = Color.red;
 			}
 			break;
 		case State.Opened:
@@ -45,14 +49,25 @@ public class Eye : MonoBehaviour {
 			{
 				Music.Stop();
 				GameContext.player.Restart();
+				state = State.Catched;
 			}
 			if ( Random.Range( 0, 30 ) == 0 )
 			{
 				state = State.Closed;
+				cellMaterial.color = Color.white;
 				transform.localScale = initialScale;
 			}
 			break;
+		case State.Catched:
+			break;
 		}
 		
+	}
+
+	public void Restart()
+	{
+		state = State.Closed;
+		cellMaterial.color = Color.white;
+		transform.localScale = initialScale;
 	}
 }
